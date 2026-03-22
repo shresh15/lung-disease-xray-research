@@ -2,7 +2,7 @@
 venv/
 .venv/
 env/
-
+.kaggle
 # Python cache
 __pycache__/
 *.pyc
