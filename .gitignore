@@ -15,3 +15,7 @@ models/*.h5
 
 # OS generated files
 .DS_Store
+raw_datasets/
+chest_xray
+Covid_19
+NIH_Dataset
