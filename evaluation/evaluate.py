@@ -1,19 +1,28 @@
 import torch
-from sklearn.metrics import accuracy_score
+from sklearn.metrics import accuracy_score, classification_report
+from config import DEVICE
 
-def evaluate(model, loader, device):
+
+def evaluate(model, loader):
+
     model.eval()
-    preds, targets = [], []
+
+    y_true = []
+    y_pred = []
 
     with torch.no_grad():
+
         for images, labels in loader:
-            images = images.to(device)
+
+            images = images.to(DEVICE)
+
             outputs = model(images)
 
-            _, predicted = torch.max(outputs, 1)
+            _, preds = torch.max(outputs, 1)
 
-            preds.extend(predicted.cpu().numpy())
-            targets.extend(labels.numpy())
+            y_true.extend(labels.numpy())
+            y_pred.extend(preds.cpu().numpy())
 
-    acc = accuracy_score(targets, preds)
-    print("Accuracy:", acc)
+    print("Accuracy:", accuracy_score(y_true, y_pred))
+
+    print(classification_report(y_true, y_pred))
