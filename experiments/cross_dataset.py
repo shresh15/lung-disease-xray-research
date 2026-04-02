@@ -1,51 +1,81 @@
-from config import DATASETS
+import torch
+import torch.optim as optim
+import pandas as pd
+
+from config import DATASETS, DEVICE
 from datasets.dataset_loader import load_kaggle, load_covid, load_nih
 from models.resnet_model import get_model
 from training.trainer import train
 from training.losses import get_loss
 from evaluation.evaluate import evaluate
 
-import torch.optim as optim
+
+results = []
 
 
-# Kaggle -> NIH
-k_train = load_kaggle(DATASETS["kaggle"]["train"])
-nih_test = load_nih(DATASETS["nih"]["test"], DATASETS["nih"]["csv"])
+def load_train_dataset(name):
 
-model = get_model()
-criterion = get_loss()
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+    if name == "kaggle":
+        return load_kaggle(DATASETS["kaggle"]["train"])
 
-train(model, k_train, optimizer, criterion)
+    if name == "covid":
+        return load_covid(DATASETS["covid"]["train"])
 
-print("Kaggle → NIH")
-
-evaluate(model, nih_test)
+    if name == "nih":
+        return load_nih(DATASETS["nih"]["train"], DATASETS["nih"]["csv"])
 
 
-# NIH -> COVID
-nih_train = load_nih(DATASETS["nih"]["train"], DATASETS["nih"]["csv"])
-covid_test = load_covid(DATASETS["covid"]["test"])
+def load_test_dataset(name):
 
-model = get_model()
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+    if name == "kaggle":
+        return load_kaggle(DATASETS["kaggle"]["test"])
 
-train(model, nih_train, optimizer, criterion)
+    if name == "covid":
+        return load_covid(DATASETS["covid"]["test"])
 
-print("NIH → COVID")
-
-evaluate(model, covid_test)
+    if name == "nih":
+        return load_nih(DATASETS["nih"]["test"], DATASETS["nih"]["csv"])
 
 
-# COVID -> Kaggle
-covid_train = load_covid(DATASETS["covid"]["train"])
-k_test = load_kaggle(DATASETS["kaggle"]["test"])
 
-model = get_model()
-optimizer = optim.Adam(model.parameters(), lr=1e-4)
+dataset_names = ["kaggle", "nih", "covid"]
 
-train(model, covid_train, optimizer, criterion)
 
-print("COVID → Kaggle")
+for train_name in dataset_names:
 
-evaluate(model, k_test)
+    for test_name in dataset_names:
+
+        if train_name == test_name:
+            continue
+
+        print(f"\n===== {train_name.upper()} → {test_name.upper()} =====")
+
+        train_loader = load_train_dataset(train_name)
+        test_loader = load_test_dataset(test_name)
+
+        model = get_model().to(DEVICE)
+
+        criterion = get_loss()
+
+        optimizer = optim.Adam(model.parameters(), lr=1e-4)
+
+        train(model, train_loader, optimizer, criterion)
+
+        metrics = evaluate(model, test_loader)
+
+        results.append({
+            "train_dataset": train_name,
+            "test_dataset": test_name,
+            "accuracy": metrics["accuracy"],
+            "precision": metrics["precision"],
+            "recall": metrics["recall"],
+            "f1": metrics["f1"]
+        })
+
+
+df = pd.DataFrame(results)
+
+print("\nFinal Results Table")
+print(df)
+
+df.to_csv("cross_dataset_results.csv", index=False)
