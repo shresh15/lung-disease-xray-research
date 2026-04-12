@@ -15,7 +15,7 @@ results = []
 
 def load_train_dataset(name):
 
-    if name == "kaggle":
+    if name == "chest_xray":
         return load_kaggle(DATASETS["kaggle"]["train"])
 
     if name == "covid":
@@ -27,7 +27,7 @@ def load_train_dataset(name):
 
 def load_test_dataset(name):
 
-    if name == "kaggle":
+    if name == "chest_xray":
         return load_kaggle(DATASETS["kaggle"]["test"])
 
     if name == "covid":
@@ -38,7 +38,7 @@ def load_test_dataset(name):
 
 
 
-dataset_names = ["kaggle", "nih", "covid"]
+dataset_names = ["chest_xray", "nih", "covid"]
 
 
 for train_name in dataset_names:
