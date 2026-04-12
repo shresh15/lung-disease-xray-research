@@ -8,7 +8,7 @@ __pycache__/
 *.pyc
 
 # Data and Models (Large files)
-datasets/
+
 outputs/
 models/*.pth
 models/*.h5
